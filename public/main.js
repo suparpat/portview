@@ -2,6 +2,30 @@ console.log(data)
 console.log(port)
 console.log(stats)
 
+const ctx = document.getElementById('myChart').getContext('2d');
+
+let colors = []
+port.forEach((p) => colors.push(`rgba(${Math.random()*255}, ${Math.random()*255}, ${Math.random()*255}, 1)`))
+const myChart = new Chart(ctx, {
+    type: 'pie',
+    data: {
+        labels: port.map((p) => p.symbol),
+        datasets: [{
+            label: 'Portfolio',
+            data: port.map((p) => p.weight),
+            backgroundColor: colors,
+            borderWidth: 1
+        }]
+    },
+    options: {
+    	responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
 
 // function getFormattedDate(){
 // 	let d = new Date()

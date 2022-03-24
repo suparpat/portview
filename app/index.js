@@ -10,7 +10,8 @@ let initial_amount = parseFloat(fs.readFileSync(__dirname + '/../data/initial_am
 
 const er = {
 	gbp: 0.76, //usdgbp
-	eur: 0.91 //usdeur
+	eur: 0.91, //usdeur
+	hkd: 7.82 //usdhkd
 }
 
 

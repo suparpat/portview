@@ -7,13 +7,17 @@ module.exports = function(initial_amount, er){
 			sum_values: 0,
 			sum_diff: 0,
 			realized: 0,
-			initial_amount: initial_amount
+			initial_amount: initial_amount,
+			holdings_cost: 0
 		}
 
 		data = data.map((d) => {
 			if(d.enrich && (d.enrich.quote.price.currency).toLowerCase() == 'gbp'){
 				d['Purchase Price'] = d['Purchase Price'] / 100 //convert penny to pound
 				d['Purchase Price'] = d['Purchase Price'] / (er.gbp) //convert gbp to usd
+			}
+			else if(d.enrich && (d.enrich.quote.price.currency).toLowerCase() == 'hkd'){
+				d['Purchase Price'] = d['Purchase Price'] / (er.hkd) //convert hkd to usd
 			}
 			return d
 		})
@@ -31,12 +35,14 @@ module.exports = function(initial_amount, er){
 					enrich: d.enrich,
 					realized: 0,
 					realized_cost: 0
-				}			
+				}
+				stats.holdings_cost += (d.Quantity * d['Purchase Price'])
 			}
 			else if(d.Quantity > 0){
 				let newQty = holdings[d.Symbol].shares + d.Quantity
 				holdings[d.Symbol].cost = ((holdings[d.Symbol].cost * holdings[d.Symbol].shares) + (d.Quantity * d['Purchase Price'])) / newQty
 				holdings[d.Symbol].shares = newQty
+				stats.holdings_cost += (d.Quantity * d['Purchase Price'])
 			}
 			else if(d.Quantity < 0){
 				let newQty = holdings[d.Symbol].shares + d.Quantity
@@ -46,27 +52,38 @@ module.exports = function(initial_amount, er){
 				holdings[d.Symbol].shares = newQty
 				holdings[d.Symbol].realized += real
 				holdings[d.Symbol].realized_cost += (Math.abs(d.Quantity) * holdings[d.Symbol].cost)
+				stats.holdings_cost = stats.holdings_cost - (Math.abs(d.Quantity) * holdings[d.Symbol].cost)
 			}
 
 		})
 
-
-
+		holdings['CASH'] = {
+			price: roundTo2(parseFloat(stats.initial_amount) - parseFloat(stats.holdings_cost) + parseFloat(stats.realized)),
+			shares: 1,
+			cost: 0,
+			diff: 0,
+			realized: 0,
+			realized_cost: 0
+		}
+		holdings['CASH'].value = holdings['CASH'].price
 
 		for (let h in holdings){
 			let v = holdings[h]
-			let curPrice = v['enrich']['quote']['price']['regularMarketPrice']
-			let currency = v['enrich']['quote']['price']['currency']
-			if(currency.toLowerCase() == 'gbp'){
-				curPrice = curPrice / 100 //convert penny to pound
-				curPrice = curPrice / (er.gbp) //convert gbp to usd
-			}
+			if(v['enrich']){
+				let curPrice = v['enrich']['quote']['price']['regularMarketPrice']
+				let currency = v['enrich']['quote']['price']['currency']
+				if(currency.toLowerCase() == 'gbp'){
+					curPrice = curPrice / 100 //convert penny to pound
+					curPrice = curPrice / (er.gbp) //convert gbp to usd
+				}
 
-			v.value = roundTo2(curPrice * v.shares)
-			v.diff = (curPrice - v.cost) * v.shares
-			v.diffPercent = roundTo2((curPrice - v.cost) / v.cost * 100)
-			v.diff = roundTo2(v.diff)
-			v.cost = roundTo2(v.cost)
+				v.value = roundTo2(curPrice * v.shares)
+				v.diff = (curPrice - v.cost) * v.shares
+				v.diffPercent = roundTo2((curPrice - v.cost) / v.cost * 100)
+				v.diff = roundTo2(v.diff)
+				v.cost = roundTo2(v.cost)
+
+			}
 
 			stats.sum_values += v.value
 			stats.sum_diff += v.diff
