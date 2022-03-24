@@ -54,7 +54,9 @@ async function getPrice(symbol){
 		  modules: [ 
 		  'price', 
 		  'summaryDetail',
-		  'summaryProfile'
+		  'summaryProfile',
+		  'recommendationTrend',
+		  'financialData'
 		  ] // see the docs for the full list
 		}, function (err, quotes) {
 			if(err){

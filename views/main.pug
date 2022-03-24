@@ -67,9 +67,15 @@ html
 						th Name
 						//- th Exchange
 						//- th Sector
+
 						th Market Cap (B)
 						th Trailing P/E
 						th Forward P/E
+						
+						th Ratings
+						th Target
+						th Target %
+
 						//- th Country
 						//- th Currency
 						th Price
@@ -92,9 +98,23 @@ html
 								td #{r.enrich.quote.price.shortName}
 								//- td #{r.enrich.quote.price.exchangeName}
 								//- td #{r.enrich.quote.summaryProfile ? r.enrich.quote.summaryProfile.sector : ""}
+
+
 								td #{r.enrich.quote.price.marketCap ? (roundTo2(r.enrich.quote.price.marketCap/1000000000)) : ""}
 								td #{r.enrich.quote.summaryDetail.trailingPE ? roundTo2(r.enrich.quote.summaryDetail.trailingPE) : ""}
 								td #{r.enrich.quote.summaryDetail.forwardPE ? roundTo2(r.enrich.quote.summaryDetail.forwardPE) : ""}
+
+								- let trend = r.enrich.quote.recommendationTrend ? (r.enrich.quote.recommendationTrend.trend[0]) : null
+								- let sumTrends = trend ? (parseFloat(trend.buy) + parseFloat(trend.strongBuy) + parseFloat(trend.sell) + parseFloat(trend.hold) + parseFloat(trend.strongSell)) : ''
+
+								if r.enrich.quote.financialData
+									td #{r.enrich.quote.financialData ? (r.enrich.quote.financialData.recommendationMean) : ""} #{r.enrich.quote.financialData ? ("(" + r.enrich.quote.financialData.recommendationKey) : ""}, #{sumTrends})
+								else 
+									td
+								
+								td #{r.enrich.quote.financialData ? (r.enrich.quote.financialData.targetMeanPrice) : ""} 
+								td #{r.enrich.quote.financialData ? (roundTo2(((r.enrich.quote.financialData.targetMeanPrice - r.enrich.quote.price.regularMarketPrice)/r.enrich.quote.price.regularMarketPrice)* 100) + "%") : ""} 
+
 								//- td #{r.enrich.quote.summaryProfile ? r.enrich.quote.summaryProfile.country : ""}
 								//- td #{r.enrich.quote.price.currency}
 								td #{r.enrich.quote.price.currencySymbol}#{r.enrich.quote.price.regularMarketPrice}
@@ -102,6 +122,7 @@ html
 								td
 								//- td
 								//- td
+								td
 								td
 								td
 								//- td
@@ -127,8 +148,9 @@ html
 					td
 					td
 					td
-					//- td
-					//- td
+					td
+					td
+					td
 					td
 					- var totalVal = port.reduce((accum, curr) => accum + parseFloat(curr.value), 0)
 					td $#{roundTo2(totalVal)}
