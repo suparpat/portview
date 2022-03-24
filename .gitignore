@@ -1,0 +1,5 @@
+node_modules/
+data/
+updated.csv
+.DS_Store
+initial_amount
