@@ -1,6 +1,9 @@
 # portview
 Track and analyse your investment portfolio
 
+![This is an image](/portview.png)
+
+
 Features
 * Works well with portfolio data exported from Yahoo Finance, or manually create trade data in a CSV file
 * Pulls up-to-date data from Yahoo Finance
