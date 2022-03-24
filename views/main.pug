@@ -15,139 +15,140 @@ html
 		h1 PortView
 		a(href="/update") Update
 
-		h3 Stats
+		if port
+			h3 Stats
 
-		table
-			thead
-				tr
-					td Item
-					td Value
-			tbody
-			tr
-				td initial amount
-				td $#{stats.initial_amount}
-			tr
-				td Total profit/loss (%)
-				td #{roundTo2((stats.sum_diff + stats.realized) / stats.initial_amount * 100)}%
-			tr
-				td Total profit/loss
-				td $#{roundTo2(stats.sum_diff + stats.realized)}
-			tr
-				td Unrealized profit/loss
-				td $#{stats.sum_diff}
-			tr
-				td Realized profit/loss
-				td $#{stats.realized}
-
-			- let holdingsWorth = port.reduce((accum, curr) => accum + parseFloat(curr.cost * curr.shares), 0)
-			- let netWorth = holdingsWorth + stats.realized
-			tr
-				td Net worth
-				td $#{roundTo2(netWorth)}
-			- let cashOnHands = netWorth - stats.initial_amount
-			tr
-				td Cash on hands
-				td $#{roundTo2(cashOnHands)}
-			tr
-				td Cash on hands (%)
-				td #{roundTo2(cashOnHands / netWorth * 100)}%
-
-		
-		hr
-
-		h3 Data
-
-		table
-			thead
-				tr
-					th #
-					th Symbol
-					th Weight
-					th Name
-					//- th Exchange
-					//- th Sector
-					th Market Cap (B)
-					th Trailing P/E
-					th Forward P/E
-					//- th Country
-					//- th Currency
-					th Price
-					th Cost/Share ($)
-					th Qty
-					th Value ($)
-					th Cost ($)
-					th Unrealized ($)
-					th Unrealized %
-					th Realized
-					th Realized Cost
-					th Realized %
-			tbody
-				each r, idx in port
+			table
+				thead
 					tr
-						td #{idx + 1}
-						td #{r.symbol}
-						td #{r.weight}%
-						if r.enrich
-							td #{r.enrich.quote.price.shortName}
-							//- td #{r.enrich.quote.price.exchangeName}
-							//- td #{r.enrich.quote.summaryProfile ? r.enrich.quote.summaryProfile.sector : ""}
-							td #{r.enrich.quote.price.marketCap ? (roundTo2(r.enrich.quote.price.marketCap/1000000000)) : ""}
-							td #{r.enrich.quote.summaryDetail.trailingPE ? roundTo2(r.enrich.quote.summaryDetail.trailingPE) : ""}
-							td #{r.enrich.quote.summaryDetail.forwardPE ? roundTo2(r.enrich.quote.summaryDetail.forwardPE) : ""}
-							//- td #{r.enrich.quote.summaryProfile ? r.enrich.quote.summaryProfile.country : ""}
-							//- td #{r.enrich.quote.price.currency}
-							td #{r.enrich.quote.price.currencySymbol}#{r.enrich.quote.price.regularMarketPrice}
-						else
-							td
-							//- td
-							//- td
-							td
-							td
-							//- td
-							//- td
-							td
-						td #{r.cost}
-						td #{r.shares}
-						td #{r.value}
-						td #{roundTo2(r.cost * r.shares)}
-						td #{r.diff}
-						td #{r.diffPercent}%
-						td $#{roundTo2(r.realized)}
-						td #{roundTo2(r.realized_cost)}
-						td #{r.realized != 0 ? roundTo2(r.realized/r.realized_cost * 100) + "%" : ""}
-			tr
-				- var totalWeight = port.reduce((accum, curr) => accum + parseFloat(curr.weight), 0)
-				td
-				td #{roundTo2(totalWeight)}
-				td
-				td
-				td
-				td
-				td
-				td
-				td
-				//- td
-				//- td
-				td
-				- var totalVal = port.reduce((accum, curr) => accum + parseFloat(curr.value), 0)
-				td $#{roundTo2(totalVal)}
+						td Item
+						td Value
+				tbody
+				tr
+					td initial amount
+					td $#{stats.initial_amount}
+				tr
+					td Total profit/loss (%)
+					td #{roundTo2((stats.sum_diff + stats.realized) / stats.initial_amount * 100)}%
+				tr
+					td Total profit/loss
+					td $#{roundTo2(stats.sum_diff + stats.realized)}
+				tr
+					td Unrealized profit/loss
+					td $#{stats.sum_diff}
+				tr
+					td Realized profit/loss
+					td $#{stats.realized}
 
-				- var totalCost = port.reduce((accum, curr) => accum + parseFloat(curr.cost * curr.shares), 0)
-				td $#{roundTo2(totalCost)}
+				- let holdingsWorth = port.reduce((accum, curr) => accum + parseFloat(curr.cost * curr.shares), 0)
+				- let netWorth = holdingsWorth + stats.realized
+				tr
+					td Net worth
+					td $#{roundTo2(netWorth)}
+				- let cashOnHands = netWorth - stats.initial_amount
+				tr
+					td Cash on hands
+					td $#{roundTo2(cashOnHands)}
+				tr
+					td Cash on hands (%)
+					td #{roundTo2(cashOnHands / netWorth * 100)}%
 
-				- var totalDiff = port.reduce((accum, curr) => accum + parseFloat(curr.diff), 0)
-				td $#{roundTo2(totalDiff)}
+			
+			hr
 
-				- var totalDiffPercent = roundTo2(totalDiff/totalVal * 100)
-				td #{totalDiffPercent}%
+			h3 Data
 
-				- var totalRealized = roundTo2(port.reduce((accum, curr) => accum + parseFloat(curr.realized), 0))
-				td $#{totalRealized}
+			table
+				thead
+					tr
+						th #
+						th Symbol
+						th Weight
+						th Name
+						//- th Exchange
+						//- th Sector
+						th Market Cap (B)
+						th Trailing P/E
+						th Forward P/E
+						//- th Country
+						//- th Currency
+						th Price
+						th Cost/Share ($)
+						th Qty
+						th Value ($)
+						th Cost ($)
+						th Unrealized ($)
+						th Unrealized %
+						th Realized
+						th Realized Cost
+						th Realized %
+				tbody
+					each r, idx in port
+						tr
+							td #{idx + 1}
+							td #{r.symbol}
+							td #{r.weight}%
+							if r.enrich
+								td #{r.enrich.quote.price.shortName}
+								//- td #{r.enrich.quote.price.exchangeName}
+								//- td #{r.enrich.quote.summaryProfile ? r.enrich.quote.summaryProfile.sector : ""}
+								td #{r.enrich.quote.price.marketCap ? (roundTo2(r.enrich.quote.price.marketCap/1000000000)) : ""}
+								td #{r.enrich.quote.summaryDetail.trailingPE ? roundTo2(r.enrich.quote.summaryDetail.trailingPE) : ""}
+								td #{r.enrich.quote.summaryDetail.forwardPE ? roundTo2(r.enrich.quote.summaryDetail.forwardPE) : ""}
+								//- td #{r.enrich.quote.summaryProfile ? r.enrich.quote.summaryProfile.country : ""}
+								//- td #{r.enrich.quote.price.currency}
+								td #{r.enrich.quote.price.currencySymbol}#{r.enrich.quote.price.regularMarketPrice}
+							else
+								td
+								//- td
+								//- td
+								td
+								td
+								//- td
+								//- td
+								td
+							td #{r.cost}
+							td #{r.shares}
+							td #{r.value}
+							td #{roundTo2(r.cost * r.shares)}
+							td #{r.diff}
+							td #{r.diffPercent}%
+							td $#{roundTo2(r.realized)}
+							td #{roundTo2(r.realized_cost)}
+							td #{r.realized != 0 ? roundTo2(r.realized/r.realized_cost * 100) + "%" : ""}
+				tr
+					- var totalWeight = port.reduce((accum, curr) => accum + parseFloat(curr.weight), 0)
+					td
+					td #{roundTo2(totalWeight)}
+					td
+					td
+					td
+					td
+					td
+					td
+					td
+					//- td
+					//- td
+					td
+					- var totalVal = port.reduce((accum, curr) => accum + parseFloat(curr.value), 0)
+					td $#{roundTo2(totalVal)}
 
-				- var totalRealizedCost = roundTo2(port.reduce((accum, curr) => accum + parseFloat(curr.realized_cost), 0))
-				td $#{totalRealizedCost}
+					- var totalCost = port.reduce((accum, curr) => accum + parseFloat(curr.cost * curr.shares), 0)
+					td $#{roundTo2(totalCost)}
 
-				td #{totalRealized != 0 ? roundTo2(totalRealized/totalRealizedCost * 100) + "%" : ""}
+					- var totalDiff = port.reduce((accum, curr) => accum + parseFloat(curr.diff), 0)
+					td $#{roundTo2(totalDiff)}
+
+					- var totalDiffPercent = roundTo2(totalDiff/totalVal * 100)
+					td #{totalDiffPercent}%
+
+					- var totalRealized = roundTo2(port.reduce((accum, curr) => accum + parseFloat(curr.realized), 0))
+					td $#{totalRealized}
+
+					- var totalRealizedCost = roundTo2(port.reduce((accum, curr) => accum + parseFloat(curr.realized_cost), 0))
+					td $#{totalRealizedCost}
+
+					td #{totalRealized != 0 ? roundTo2(totalRealized/totalRealizedCost * 100) + "%" : ""}
 
 		script(type="text/javascript" src="lib/jquery-3.2.1.min.js")
 		script(type="text/javascript" src="lib/DataTables/datatables.js")
