@@ -11,21 +11,6 @@ module.exports = function(initial_amount, er){
 			holdings_cost: 0
 		}
 
-		data = data.map((d) => {
-			if(d.enrich && (d.enrich.quote.price.currency).toLowerCase() == 'gbp'){
-				d['Purchase Price'] = d['Purchase Price'] / 100 //convert penny to pound
-				d['Purchase Price'] = d['Purchase Price'] / (er.gbp) //convert gbp to usd
-			}
-			else if(d.enrich && (d.enrich.quote.price.currency).toLowerCase() == 'hkd'){
-				d['Purchase Price'] = d['Purchase Price'] / (er.hkd) //convert hkd to usd
-			}
-			return d
-		})
-
-		data.sort((a, b) => {
-			return a['Trade Date'] - b['Trade Date']
-		})
-
 		//enter data to holdings object
 		data.forEach((d) => {
 			if(!holdings[d.Symbol]){
@@ -34,7 +19,8 @@ module.exports = function(initial_amount, er){
 					cost: d['Purchase Price'],
 					enrich: d.enrich,
 					realized: 0,
-					realized_cost: 0
+					realized_cost: 0,
+					lots: [{shares: d.Quantity, cost: d['Purchase Price'], date: tradeDateFormat(d['Trade Date'])}]
 				}
 				stats.holdings_cost += (d.Quantity * d['Purchase Price'])
 			}
@@ -43,6 +29,7 @@ module.exports = function(initial_amount, er){
 				holdings[d.Symbol].cost = ((holdings[d.Symbol].cost * holdings[d.Symbol].shares) + (d.Quantity * d['Purchase Price'])) / newQty
 				holdings[d.Symbol].shares = newQty
 				stats.holdings_cost += (d.Quantity * d['Purchase Price'])
+				holdings[d.Symbol].lots.push({shares: d.Quantity, cost: d['Purchase Price'], date: tradeDateFormat(d['Trade Date'])})
 			}
 			else if(d.Quantity < 0){
 				let newQty = holdings[d.Symbol].shares + d.Quantity
@@ -53,6 +40,7 @@ module.exports = function(initial_amount, er){
 				holdings[d.Symbol].realized += real
 				holdings[d.Symbol].realized_cost += (Math.abs(d.Quantity) * holdings[d.Symbol].cost)
 				stats.holdings_cost = stats.holdings_cost - (Math.abs(d.Quantity) * holdings[d.Symbol].cost)
+				holdings[d.Symbol].lots.push({shares: d.Quantity, cost: d['Purchase Price'], date: tradeDateFormat(d['Trade Date'])})
 			}
 
 		})
@@ -106,6 +94,15 @@ module.exports = function(initial_amount, er){
 
 }
 
+function tradeDateFormat(td){
+	let ds = String(td)
+	let y = ds.substring(0, 4)
+	let m = ds.substring(4, 6)
+	let d = ds.substring(6, 8)
+	let o = new Date(`${y}-${m}-${d}`)
+
+	return o
+}
 
 function objToArr(obj){
 	let arr = []

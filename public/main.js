@@ -27,6 +27,123 @@ const myChart = new Chart(ctx, {
     }
 });
 
+let dailyPortValue = {
+    x: [], 
+    y: [], 
+    type: 'scatter',
+    mode: "lines",
+}
+
+let dailyPortReturn = {
+    x: [], 
+    y: [],
+    yaxis: 'y2',
+    type: 'scatter',
+    mode: "lines",
+}
+
+let startDate = new Date(`${new Date().getFullYear()-5}-01-01`)
+let endDate = new Date(`${new Date().getFullYear()}-12-31`)
+
+let tomorrow = new Date()
+tomorrow.setDate(tomorrow.getDate() + 1)
+for(let i = startDate; i < endDate; i.setDate(i.getDate() + 1)){
+    if(i < tomorrow){
+        let dayData = calcDayValue(i)
+        dailyPortValue['x'].push(i.toISOString())
+        dailyPortValue['y'].push(dayData.val)
+        dailyPortReturn['x'].push(i.toISOString())
+        dailyPortReturn['y'].push((dayData.val - dayData.cost) / dayData.cost * 100)
+    }
+}
+
+console.log(dailyPortValue)
+
+function calcDayValue(date){
+    let val = 0
+    let cost = 0
+    let todaysHoldings = {}
+    data.forEach((d) => {
+        let tradedate = (tradeDateFormat(d['Trade Date']))
+
+        if(tradedate <= date){
+            if(!todaysHoldings[d['Symbol']]){
+                todaysHoldings[d['Symbol']] = {
+                    shares: d['Quantity'],
+                    cost: d['Purchase Price'],
+                    currentPrice: findNearestQuote(d['enrich']['historical'], date)
+                }                
+            }
+
+            else{
+                let currentVal = todaysHoldings[d['Symbol']].shares * todaysHoldings[d['Symbol']].cost
+                let latestVal = d['Quantity'] * d['Purchase Price']
+                let sharesCount = (todaysHoldings[d['Symbol']].shares + d['Quantity'])
+                todaysHoldings[d['Symbol']].cost = (sharesCount > 0) ? ((currentVal + latestVal) / sharesCount) : 0
+                todaysHoldings[d['Symbol']].shares += d['Quantity']
+                // todaysHoldings[d['Symbol']].currentPrice = findNearestQuote(d['enrich']['historical'], date)
+            }
+
+        }
+    })
+    console.log(String(date), todaysHoldings)
+
+    for(let s in todaysHoldings){
+        let thisHolding = todaysHoldings[s]
+        val += thisHolding['shares'] * thisHolding['currentPrice']
+        cost += thisHolding['shares'] * thisHolding['cost']
+    }
+
+    return {
+        val: val,
+        cost: cost
+    }
+}
+
+function findNearestQuote(historical, date){
+    let dateNum = Number(`${date.getFullYear()}${("0"+date.getMonth()+1).slice(-2)}${("0"+date.getDate()).slice(-2)}`)
+
+    let hist = historical.map((h) => {
+        let d = Number(h.date.substring(0, 10).replace(/-/g, ''))
+        h.d = d,
+        h.diff = Math.abs(d - dateNum)
+        return h
+    })
+
+    hist.sort((a, b) => a.diff - b.diff)
+    let cur = historical.find((h) => h.date == hist[0].date)
+
+    return (cur.usd_close_price ? cur.usd_close_price : cur.close)
+}
+
+function tradeDateFormat(td){
+    let ds = String(td)
+    let y = ds.substring(0, 4)
+    let m = ds.substring(4, 6)
+    let d = ds.substring(6, 8)
+    let o = new Date(`${y}-${m}-${d}`)
+
+    return o
+}
+// https://plotly.com/javascript/time-series/
+let plotConfig = {
+    data: [dailyPortValue, dailyPortReturn],
+    "layout": {
+        "width": 1200,
+        "height": 700,
+        yaxis: {title: 'value'},
+        yaxis2: {
+            title: 'return (%)',
+            titlefont: {color: 'rgb(148, 103, 189)'},
+            tickfont: {color: 'rgb(148, 103, 189)'},
+            overlaying: 'y',
+            side: 'right'
+        }
+    }
+}
+
+Plotly.newPlot("gd", plotConfig)
+
 // function getFormattedDate(){
 // 	let d = new Date()
 // 	return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`

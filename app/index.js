@@ -17,6 +17,7 @@ const er = {
 
 const calc = require('./calc.js')(initial_amount, er)
 const getPrices = require('./data.js').getPrices
+const getHistoricals = require('./data.js').getHistoricals
 
 const app = express()
 app.set('views', './views')
@@ -46,6 +47,29 @@ app.get('/', async (req, res) => {
 			return d
 		})
 
+		data = data.map((d) => {
+			if(d.enrich && (d.enrich.quote.price.currency).toLowerCase() == 'gbp'){
+				d['Purchase Price'] = d['Purchase Price'] / 100 //convert penny to pound
+				d['Purchase Price'] = d['Purchase Price'] / (er.gbp) //convert gbp to usd
+				d.enrich.historical = d.enrich.historical.map((p) => {
+					p.usd_close_price = (p.close / 100 / er.gbp)
+					return p
+				})
+			}
+			else if(d.enrich && (d.enrich.quote.price.currency).toLowerCase() == 'hkd'){
+				d['Purchase Price'] = d['Purchase Price'] / (er.hkd) //convert hkd to usd
+				d.enrich.historical = d.enrich.historical.map((p) => {
+					p.usd_close_price = (p.close / er.hkd)
+					return p
+				})
+			}
+			return d
+		})
+
+		data.sort((a, b) => {
+			return a['Trade Date'] - b['Trade Date']
+		})
+
 		let calculated = calc(data)
 		let port = calculated.arr
 		let stats = calculated.stats
@@ -72,6 +96,8 @@ app.get('/update', async (req, res) => {
 		var data = csvParseSync(input)
 		data = csvToJson(data)
 		data = await getPrices(data)
+		data = await getHistoricals(data)
+
 		data.sort((a, b) => {
 			return a['Trade Date'] - b['Trade Date']
 		})
