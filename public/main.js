@@ -5,7 +5,9 @@ console.log(stats)
 const ctx = document.getElementById('myChart').getContext('2d');
 
 let colors = []
+
 port.forEach((p) => colors.push(`rgba(${Math.random()*255}, ${Math.random()*255}, ${Math.random()*255}, 1)`))
+
 const myChart = new Chart(ctx, {
     type: 'pie',
     data: {
@@ -25,14 +27,24 @@ const myChart = new Chart(ctx, {
             }
         }
     }
-});
+})
 
 let dailyPortValue = {
     x: [], 
     y: [], 
     type: 'scatter',
     mode: "lines",
+    name: 'Portfolio value'
 }
+
+let realized = {
+    x: [], 
+    y: [], 
+    type: 'scatter',
+    mode: "lines",
+    name: 'Realized gain/loss'
+}
+
 
 let dailyPortReturn = {
     x: [], 
@@ -40,6 +52,7 @@ let dailyPortReturn = {
     yaxis: 'y2',
     type: 'scatter',
     mode: "lines",
+    name: 'Return (%)'
 }
 
 let startDate = new Date(`${new Date().getFullYear()-5}-01-01`)
@@ -53,16 +66,23 @@ for(let i = startDate; i < endDate; i.setDate(i.getDate() + 1)){
         dailyPortValue['x'].push(i.toISOString())
         dailyPortValue['y'].push(dayData.val)
         dailyPortReturn['x'].push(i.toISOString())
-        dailyPortReturn['y'].push((dayData.val - dayData.cost) / dayData.cost * 100)
+        dailyPortReturn['y'].push((dayData.val + dayData.realized - dayData.cost) / dayData.cost * 100)
+        realized['x'].push(i.toISOString())
+        realized['y'].push(dayData.realized)
+        // dailyPortReturn['y'].push((dayData.val - stats.initial_amount) / stats.initial_amount * 100)
     }
 }
+
+
 
 console.log(dailyPortValue)
 
 function calcDayValue(date){
     let val = 0
     let cost = 0
+    let realized = 0
     let todaysHoldings = {}
+
     data.forEach((d) => {
         let tradedate = (tradeDateFormat(d['Trade Date']))
 
@@ -76,12 +96,17 @@ function calcDayValue(date){
             }
 
             else{
+                if(d['Quantity'] < 0){
+                    realized += (d['Quantity'] * todaysHoldings[d['Symbol']].currentPrice) - (d['Quantity'] * d['Purchase Price'])
+                }
+
                 let currentVal = todaysHoldings[d['Symbol']].shares * todaysHoldings[d['Symbol']].cost
                 let latestVal = d['Quantity'] * d['Purchase Price']
                 let sharesCount = (todaysHoldings[d['Symbol']].shares + d['Quantity'])
                 todaysHoldings[d['Symbol']].cost = (sharesCount > 0) ? ((currentVal + latestVal) / sharesCount) : 0
                 todaysHoldings[d['Symbol']].shares += d['Quantity']
                 // todaysHoldings[d['Symbol']].currentPrice = findNearestQuote(d['enrich']['historical'], date)
+
             }
 
         }
@@ -96,7 +121,8 @@ function calcDayValue(date){
 
     return {
         val: val,
-        cost: cost
+        cost: cost,
+        realized: realized
     }
 }
 
@@ -127,11 +153,13 @@ function tradeDateFormat(td){
 }
 // https://plotly.com/javascript/time-series/
 let plotConfig = {
-    data: [dailyPortValue, dailyPortReturn],
+    data: [dailyPortValue, dailyPortReturn, realized],
     "layout": {
         "width": 1200,
         "height": 700,
-        yaxis: {title: 'value'},
+        yaxis: {
+            title: 'value'
+        },
         yaxis2: {
             title: 'return (%)',
             titlefont: {color: 'rgb(148, 103, 189)'},
