@@ -171,9 +171,107 @@ function tradeDateFormat(td){
 
     return o
 }
+
+
+// https://plotly.com/javascript/text-and-annotations/
+// let annos = []
+// let deg = [-50, -100, -150, -200, -250, -300, -350, -400]
+// let lastDay;
+// let annoPush;
+
+// data.forEach((d, idx) => {
+//     let date = new Date(d['Trade Date'].substring(0,4) + "-" + d['Trade Date'].substring(4,6) + "-" + d['Trade Date'].substring(6,8)).toISOString()
+//     let findXPos = (dailyPortValue.x).indexOf(date)
+//     let findY = (dailyPortValue.y)[findXPos]
+
+//     if(!annoPush){
+//         annoPush = {
+//             // text: `${d.Symbol}<br>${d.Quantity}@${roundTo2(d['Purchase Price'])}`,
+//             text: `${d.Quantity > 0 ? "+" : "-"}${d.Symbol}`,
+//             x: date,
+//             y: findY,
+//             xref: 'x',
+//             yref: 'y',
+//             showarrow: true,
+//             arrowhead: 7,
+//             ax: -200,
+//             // ay: -100,
+//             ay: deg[annos.length % deg.length]
+//         }
+//         lastDay = d['Trade Date']
+//     }
+//     else if(lastDay == d['Trade Date']){
+//         annoPush.text += `<br>${d.Quantity > 0 ? "+" : "-"}${d.Symbol}`
+//     }
+//     else{
+//         annos.push(annoPush)
+//         annoPush = {
+//             // text: `${d.Symbol}<br>${d.Quantity}@${roundTo2(d['Purchase Price'])}`,
+//             text: `${d.Quantity > 0 ? "+" : "-"}${d.Symbol}`,
+//             x: date,
+//             y: findY,
+//             xref: 'x',
+//             yref: 'y',
+//             showarrow: true,
+//             arrowhead: 7,
+//             ax: -200,
+//             // ay: -100,
+//             ay: deg[annos.length%deg.length]
+//         }
+//         lastDay = d['Trade Date']
+//     }
+
+// })
+
+// plotConfig.layout.annotations = annos
+let scatter = {
+    x: [],
+    y: [],
+    name: 'Action',
+    text: [],
+    textposition: 'top',
+    mode: 'markers',
+    type: 'scatter'
+}
+let lastDay;
+let annoPush;
+data.forEach((d, idx) => {
+    let date = new Date(d['Trade Date'].substring(0,4) + "-" + d['Trade Date'].substring(4,6) + "-" + d['Trade Date'].substring(6,8)).toISOString()
+    let findXPos = (dailyPortValue.x).indexOf(date)
+    let findY = (dailyPortValue.y)[findXPos]
+    let buyOrSell = (d.Quantity < 0) ? 'SELL' : 'BUY'
+    if(!annoPush){
+        annoPush = {
+            text: `${buyOrSell} ${d.Symbol} ${d.Quantity}@${roundTo2(d['Purchase Price'])}`,
+            // text: `${d.Quantity > 0 ? "+" : "-"}${d.Symbol}`,
+            x: date,
+            y: findY,
+        }
+        lastDay = d['Trade Date']
+    }
+    else if(lastDay == d['Trade Date']){
+        annoPush.text += `<br>${buyOrSell} ${d.Symbol} ${d.Quantity}@${roundTo2(d['Purchase Price'])}`
+        // annoPush.text += `<br>${d.Quantity > 0 ? "+" : "-"}${d.Symbol}`
+    }
+    else{
+        scatter['x'].push(annoPush.x)
+        scatter['y'].push(annoPush.y)
+        scatter['text'].push(annoPush.text)
+        annoPush = {
+            text: `${buyOrSell} ${d.Symbol} ${d.Quantity}@${roundTo2(d['Purchase Price'])}`,
+            // text: `${d.Quantity > 0 ? "+" : "-"}${d.Symbol}`,
+            x: date,
+            y: findY,
+        }
+        lastDay = d['Trade Date']
+    }
+
+})
+
+
 // https://plotly.com/javascript/time-series/
 let plotConfig = {
-    data: [dailyPortValue, dailyPortReturn, realized],
+    data: [dailyPortValue, dailyPortReturn, realized, scatter],
     "layout": {
         "width": 1200,
         "height": 700,
@@ -190,57 +288,7 @@ let plotConfig = {
     }
 }
 
-// https://plotly.com/javascript/text-and-annotations/
-let annos = []
-let deg = [-50, -100, -150, -200, -250, -300, -350, -400]
-let lastDay;
-let annoPush;
 
-data.forEach((d, idx) => {
-    let date = new Date(d['Trade Date'].substring(0,4) + "-" + d['Trade Date'].substring(4,6) + "-" + d['Trade Date'].substring(6,8)).toISOString()
-    let findXPos = (dailyPortValue.x).indexOf(date)
-    let findY = (dailyPortValue.y)[findXPos]
-
-    if(!annoPush){
-        annoPush = {
-            // text: `${d.Symbol}<br>${d.Quantity}@${roundTo2(d['Purchase Price'])}`,
-            text: `${d.Quantity > 0 ? "+" : "-"}${d.Symbol}`,
-            x: date,
-            y: findY,
-            xref: 'x',
-            yref: 'y',
-            showarrow: true,
-            arrowhead: 7,
-            ax: -200,
-            // ay: -100,
-            ay: deg[annos.length % deg.length]
-        }
-        lastDay = d['Trade Date']
-    }
-    else if(lastDay == d['Trade Date']){
-        annoPush.text += `<br>${d.Quantity > 0 ? "+" : "-"}${d.Symbol}`
-    }
-    else{
-        annos.push(annoPush)
-        annoPush = {
-            // text: `${d.Symbol}<br>${d.Quantity}@${roundTo2(d['Purchase Price'])}`,
-            text: `${d.Quantity > 0 ? "+" : "-"}${d.Symbol}`,
-            x: date,
-            y: findY,
-            xref: 'x',
-            yref: 'y',
-            showarrow: true,
-            arrowhead: 7,
-            ax: -200,
-            // ay: -100,
-            ay: deg[annos.length%deg.length]
-        }
-        lastDay = d['Trade Date']
-    }
-
-})
-
-plotConfig.layout.annotations = annos
 Plotly.newPlot("gd", plotConfig)
 
 // function getFormattedDate(){
