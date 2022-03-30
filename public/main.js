@@ -63,7 +63,7 @@ tomorrow.setDate(tomorrow.getDate() + 1)
 for(let i = startDate; i < endDate; i.setDate(i.getDate() + 1)){
     if(i < tomorrow){
         let dayData = calcDayValue(i)
-        console.log(i, dayData)
+        // console.log(i, dayData)
         dailyPortValue['x'].push(i.toISOString())
         dailyPortValue['y'].push(dayData.val)
         dailyPortReturn['x'].push(i.toISOString())
@@ -89,10 +89,12 @@ function calcDayValue(date){
 
         if(tradedate <= date){
             if(!todaysHoldings[d['Symbol']]){
+                let price = findNearestQuote(d['enrich']['historical'], date, d['Symbol'])
+
                 todaysHoldings[d['Symbol']] = {
                     shares: d['Quantity'],
                     cost: d['Purchase Price'],
-                    currentPrice: findNearestQuote(d['enrich']['historical'], date)
+                    currentPrice: price
                 }                
             }
 
@@ -125,7 +127,7 @@ function calcDayValue(date){
         }
     }
 
-    console.log(String(date), todaysHoldings)
+    // console.log(String(date), todaysHoldings)
 
     return {
         val: val,
@@ -134,20 +136,26 @@ function calcDayValue(date){
     }
 }
 
-function findNearestQuote(historical, date){
-    let dateNum = Number(`${date.getFullYear()}${("0"+date.getMonth()+1).slice(-2)}${("0"+date.getDate()).slice(-2)}`)
+function findNearestQuote(historical, date, symbol){
+    //format date as YYYYMMDD
+    let dateNum = Number(`${date.getFullYear()}${("0"+(date.getMonth()+1)).slice(-2)}${("0"+date.getDate()).slice(-2)}`)
 
+    //create hist from historical, enriching formatted date and date diff
     let hist = historical.map((h) => {
-        let d = Number(h.date.substring(0, 10).replace(/-/g, ''))
-        h.d = d
-        h.diff = Math.abs(d - dateNum)
+        h.d = Number(h.date.substring(0, 10).replace(/-/g, ''))
+        h.diff = Math.abs(h.d - dateNum)
         return h
     })
 
+    //sort by diff
     hist.sort((a, b) => a.diff - b.diff)
-    let cur = historical.find((h) => h.date == hist[0].date)
 
-    return (cur.usd_close_price ? cur.usd_close_price : cur.close)
+    // if(symbol.toLowerCase() == 'aapl'){
+    //     console.log(dateNum, 'aapl',  hist[0].diff, hist[0].d)
+    // }
+
+
+    return (hist[0].usd_close_price ? hist[0].usd_close_price : hist[0].close)
 }
 
 function tradeDateFormat(td){
