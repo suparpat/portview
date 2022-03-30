@@ -55,7 +55,7 @@ let dailyPortReturn = {
     name: 'Return (%)'
 }
 
-let startDate = new Date(`${new Date().getFullYear()-5}-01-01`)
+let startDate = new Date(`${new Date().getFullYear()-3}-01-01`)
 let endDate = new Date(`${new Date().getFullYear()}-12-31`)
 
 let tomorrow = new Date()
@@ -63,6 +63,7 @@ tomorrow.setDate(tomorrow.getDate() + 1)
 for(let i = startDate; i < endDate; i.setDate(i.getDate() + 1)){
     if(i < tomorrow){
         let dayData = calcDayValue(i)
+        console.log(i, dayData)
         dailyPortValue['x'].push(i.toISOString())
         dailyPortValue['y'].push(dayData.val)
         dailyPortReturn['x'].push(i.toISOString())
@@ -75,7 +76,7 @@ for(let i = startDate; i < endDate; i.setDate(i.getDate() + 1)){
 
 
 
-console.log(dailyPortValue)
+// console.log('dailyPortValue', dailyPortValue)
 
 function calcDayValue(date){
     let val = 0
@@ -95,29 +96,36 @@ function calcDayValue(date){
                 }                
             }
 
-            else{
-                if(d['Quantity'] < 0){
-                    realized += (d['Quantity'] * todaysHoldings[d['Symbol']].currentPrice) - (d['Quantity'] * d['Purchase Price'])
-                }
+            else if(d['Quantity'] > 0){
+                let newQty = (todaysHoldings[d['Symbol']].shares + d['Quantity'])
 
-                let currentVal = todaysHoldings[d['Symbol']].shares * todaysHoldings[d['Symbol']].cost
-                let latestVal = d['Quantity'] * d['Purchase Price']
-                let sharesCount = (todaysHoldings[d['Symbol']].shares + d['Quantity'])
-                todaysHoldings[d['Symbol']].cost = (sharesCount > 0) ? ((currentVal + latestVal) / sharesCount) : 0
-                todaysHoldings[d['Symbol']].shares += d['Quantity']
-                // todaysHoldings[d['Symbol']].currentPrice = findNearestQuote(d['enrich']['historical'], date)
+                todaysHoldings[d['Symbol']].cost = ((todaysHoldings[d['Symbol']].shares * todaysHoldings[d['Symbol']].cost) + (d['Quantity'] * d['Purchase Price'])) / newQty
+                todaysHoldings[d['Symbol']].shares = newQty
+            }
+
+            else if(d['Quantity'] < 0){
+                let newQty = (todaysHoldings[d['Symbol']].shares + d['Quantity'])
+                realized += (Math.abs(d['Quantity']) * d['Purchase Price']) - (Math.abs(d['Quantity']) * todaysHoldings[d['Symbol']].cost)
+
+                todaysHoldings[d['Symbol']].cost = (newQty > 0) ? (((todaysHoldings[d['Symbol']].shares * todaysHoldings[d['Symbol']].cost) + (d['Quantity'] * d['Purchase Price'])) / newQty) : 0
+                todaysHoldings[d['Symbol']].shares = newQty
 
             }
 
+
+
         }
     })
-    console.log(String(date), todaysHoldings)
 
     for(let s in todaysHoldings){
         let thisHolding = todaysHoldings[s]
-        val += thisHolding['shares'] * thisHolding['currentPrice']
-        cost += thisHolding['shares'] * thisHolding['cost']
+        if(thisHolding['shares'] > 0){
+            val += thisHolding['shares'] * thisHolding['currentPrice']
+            cost += thisHolding['shares'] * thisHolding['cost']            
+        }
     }
+
+    console.log(String(date), todaysHoldings)
 
     return {
         val: val,
@@ -131,7 +139,7 @@ function findNearestQuote(historical, date){
 
     let hist = historical.map((h) => {
         let d = Number(h.date.substring(0, 10).replace(/-/g, ''))
-        h.d = d,
+        h.d = d
         h.diff = Math.abs(d - dateNum)
         return h
     })

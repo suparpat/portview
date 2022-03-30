@@ -48,9 +48,18 @@ app.get('/', async (req, res) => {
 		})
 
 		data = data.map((d) => {
+			if(d.enrich && (d.enrich.quote.price.exchange).toLowerCase() == 'lse'){
+				// d['Purchase Price'] = d['Purchase Price'] / 100 //convert penny to pound
+				d.enrich.historical = d.enrich.historical.map((p) => {
+					if(Number(p.date.substring(0, 4)) < 2022){
+						p.usd_close_price = (p.close / 100)						
+					}
+					return p
+				})
+			}
+
 			if(d.enrich && (d.enrich.quote.price.currency).toLowerCase() == 'gbp'){
-				d['Purchase Price'] = d['Purchase Price'] / 100 //convert penny to pound
-				d['Purchase Price'] = d['Purchase Price'] / (er.gbp) //convert gbp to usd
+				d['Purchase Price'] = d['Purchase Price'] / 100 / (er.gbp) //convert penny to pound, convert gbp to usd
 				d.enrich.historical = d.enrich.historical.map((p) => {
 					p.usd_close_price = (p.close / 100 / er.gbp)
 					return p
