@@ -45,6 +45,19 @@ html
 					td Net Worth
 					td #{roundTo2(holdingsWorth)}
 
+				- let count = 0
+				- var topTenPerc = port.reduce((accum, curr, idx) => {
+				- 	if(count < 10 && curr.symbol != 'CASH'){
+				-		count++
+				-		return accum + parseFloat(curr.weight)
+				- 	}else{
+				- 		return accum
+				- 	}
+				- }, 0)
+				tr
+					td Top 10 % (ex cash)
+					td #{roundTo2(topTenPerc)}%
+
 
 			
 			hr
