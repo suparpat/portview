@@ -158,6 +158,10 @@ function findNearestQuote(historical, date, symbol){
     return (hist[0].usd_close_price ? hist[0].usd_close_price : hist[0].close)
 }
 
+function roundTo2(num){
+    return Math.round(num * 100) / 100
+}
+
 function tradeDateFormat(td){
     let ds = String(td)
     let y = ds.substring(0, 4)
@@ -186,6 +190,57 @@ let plotConfig = {
     }
 }
 
+// https://plotly.com/javascript/text-and-annotations/
+let annos = []
+let deg = [-50, -100, -150, -200, -250, -300, -350, -400]
+let lastDay;
+let annoPush;
+
+data.forEach((d, idx) => {
+    let date = new Date(d['Trade Date'].substring(0,4) + "-" + d['Trade Date'].substring(4,6) + "-" + d['Trade Date'].substring(6,8)).toISOString()
+    let findXPos = (dailyPortValue.x).indexOf(date)
+    let findY = (dailyPortValue.y)[findXPos]
+
+    if(!annoPush){
+        annoPush = {
+            // text: `${d.Symbol}<br>${d.Quantity}@${roundTo2(d['Purchase Price'])}`,
+            text: `${d.Quantity > 0 ? "+" : "-"}${d.Symbol}`,
+            x: date,
+            y: findY,
+            xref: 'x',
+            yref: 'y',
+            showarrow: true,
+            arrowhead: 7,
+            ax: -200,
+            // ay: -100,
+            ay: deg[annos.length % deg.length]
+        }
+        lastDay = d['Trade Date']
+    }
+    else if(lastDay == d['Trade Date']){
+        annoPush.text += `<br>${d.Quantity > 0 ? "+" : "-"}${d.Symbol}`
+    }
+    else{
+        annos.push(annoPush)
+        annoPush = {
+            // text: `${d.Symbol}<br>${d.Quantity}@${roundTo2(d['Purchase Price'])}`,
+            text: `${d.Quantity > 0 ? "+" : "-"}${d.Symbol}`,
+            x: date,
+            y: findY,
+            xref: 'x',
+            yref: 'y',
+            showarrow: true,
+            arrowhead: 7,
+            ax: -200,
+            // ay: -100,
+            ay: deg[annos.length%deg.length]
+        }
+        lastDay = d['Trade Date']
+    }
+
+})
+
+plotConfig.layout.annotations = annos
 Plotly.newPlot("gd", plotConfig)
 
 // function getFormattedDate(){
