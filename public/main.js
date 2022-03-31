@@ -234,38 +234,42 @@ let scatter = {
     type: 'scatter'
 }
 let lastDay;
-let annoPush;
+let annotation;
 data.forEach((d, idx) => {
     let date = new Date(d['Trade Date'].substring(0,4) + "-" + d['Trade Date'].substring(4,6) + "-" + d['Trade Date'].substring(6,8)).toISOString()
     let findXPos = (dailyPortValue.x).indexOf(date)
     let findY = (dailyPortValue.y)[findXPos]
     let buyOrSell = (d.Quantity < 0) ? 'SELL' : 'BUY'
-    if(!annoPush){
-        annoPush = {
-            text: `${buyOrSell} ${d.Symbol} ${d.Quantity}@${roundTo2(d['Purchase Price'])}`,
-            // text: `${d.Quantity > 0 ? "+" : "-"}${d.Symbol}`,
-            x: date,
-            y: findY,
-        }
-        lastDay = d['Trade Date']
+
+    // push if different trade date and data exists
+    if(annotation && (lastDay != d['Trade Date'])){
+        scatter['x'].push(annotation.x)
+        scatter['y'].push(annotation.y)
+        scatter['text'].push(annotation.text)
+        annotation = null
     }
-    else if(lastDay == d['Trade Date']){
-        annoPush.text += `<br>${buyOrSell} ${d.Symbol} ${d.Quantity}@${roundTo2(d['Purchase Price'])}`
-        // annoPush.text += `<br>${d.Quantity > 0 ? "+" : "-"}${d.Symbol}`
-    }
-    else{
-        scatter['x'].push(annoPush.x)
-        scatter['y'].push(annoPush.y)
-        scatter['text'].push(annoPush.text)
-        annoPush = {
+
+    // initialize new object if different trade date
+    if(lastDay != d['Trade Date']){
+        annotation = {
             text: `${buyOrSell} ${d.Symbol} ${d.Quantity}@${roundTo2(d['Purchase Price'])}`,
-            // text: `${d.Quantity > 0 ? "+" : "-"}${d.Symbol}`,
             x: date,
             y: findY,
         }
         lastDay = d['Trade Date']
     }
 
+    // add to text if same trade date
+    else{
+        annotation.text += `<br>${buyOrSell} ${d.Symbol} ${d.Quantity}@${roundTo2(d['Purchase Price'])}`
+    }
+
+    //push if last
+    if(annotation && (data.length == (idx + 1))){
+        scatter['x'].push(annotation.x)
+        scatter['y'].push(annotation.y)
+        scatter['text'].push(annotation.text)
+    }
 })
 
 
