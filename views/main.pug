@@ -86,11 +86,11 @@ html
 
 								if r.enrich
 									td #{r.enrich.quote.price.marketCap ? (roundTo2(r.enrich.quote.price.marketCap/1000000000)) : ""}
-									td #{r.enrich.quote.price.currencySymbol}#{r.enrich.quote.price.regularMarketPrice}
+									td #{r.enrich.quote.price.currencySymbol}#{roundTo2(r.enrich.quote.price.regularMarketPrice)}
 								else
 									td
 									if r.price
-										td #{r.price}
+										td #{roundTo2(r.price)}
 									else
 										td
 								td #{r.cost}
@@ -186,7 +186,7 @@ html
 
 								//- td #{r.enrich.quote.summaryProfile ? r.enrich.quote.summaryProfile.country : ""}
 								//- td #{r.enrich.quote.price.currency}
-								td #{r.enrich.quote.price.currencySymbol}#{r.enrich.quote.price.regularMarketPrice}
+								td #{r.enrich.quote.price.currencySymbol}#{roundTo2(r.enrich.quote.price.regularMarketPrice)}
 							else
 								td
 								td

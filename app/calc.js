@@ -59,11 +59,11 @@ module.exports = function(initial_amount, er){
 			let v = holdings[h]
 			if(v['enrich']){
 				let curPrice = v['enrich']['quote']['price']['regularMarketPrice']
-				let currency = v['enrich']['quote']['price']['currency']
-				if(currency.toLowerCase() == 'gbp'){
-					curPrice = curPrice / 100 //convert penny to pound
-					curPrice = curPrice / (er.gbp) //convert gbp to usd
-				}
+				// let currency = v['enrich']['quote']['price']['currency']
+				// if(currency.toLowerCase() == 'gbp'){
+				// 	curPrice = curPrice / 100 //convert penny to pound
+				// 	curPrice = curPrice / (er.gbp) //convert gbp to usd
+				// }
 
 				v.value = roundTo2(curPrice * v.shares)
 				v.diff = (curPrice - v.cost) * v.shares
