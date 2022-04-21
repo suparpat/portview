@@ -12,7 +12,7 @@ port.forEach((p) => colors.push(`rgba(${Math.random()*255}, ${Math.random()*255}
 const myChart = new Chart(ctx, {
     type: 'pie',
     data: {
-        labels: port.map((p) => p.symbol),
+        labels: port.filter((p) => p.shares > 0).map((p) => p.symbol),
         datasets: [{
             label: 'Portfolio',
             data: port.map((p) => p.weight),
@@ -35,7 +35,8 @@ let dailyPortValue = {
     y: [], 
     type: 'scatter',
     mode: "lines",
-    name: 'Portfolio value'
+    name: 'Portfolio value',
+    visible: 'legendonly'
 }
 
 let realized = {
@@ -43,9 +44,18 @@ let realized = {
     y: [], 
     type: 'scatter',
     mode: "lines",
-    name: 'Realized gain/loss'
+    name: 'Realized gain/loss',
+    visible: 'legendonly'
 }
 
+let totalCost = {
+    x: [], 
+    y: [], 
+    type: 'scatter',
+    mode: "lines",
+    name: 'Cost',
+    visible: 'legendonly'
+}
 
 let dailyPortReturn = {
     x: [], 
@@ -79,12 +89,18 @@ for(let i = startDate; i < endDate; i.setDate(i.getDate() + 1)){
     if(i < tomorrow){
         let iso = i.toISOString()
         let dayData = calcDayValue(i)
+        
         dailyPortValue['x'].push(iso)
         dailyPortValue['y'].push(dayData.val)
+
         dailyPortReturn['x'].push(iso)
         dailyPortReturn['y'].push((dayData.val + dayData.realized - dayData.cost) / dayData.cost * 100)
+
         realized['x'].push(iso)
         realized['y'].push(dayData.realized)
+
+        totalCost['x'].push(iso)
+        totalCost['y'].push(dayData.cost)
 
         if(i >= firstTradeDate){
             sp500Return['x'].push(iso)
@@ -306,7 +322,7 @@ data.forEach((d, idx) => {
 
 // https://plotly.com/javascript/time-series/
 let plotConfig = {
-    data: [dailyPortValue, dailyPortReturn, realized, scatter, sp500Return],
+    data: [dailyPortValue, dailyPortReturn, realized, scatter, sp500Return, totalCost],
     "layout": {
         "width": 1200,
         "height": 700,

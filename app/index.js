@@ -54,9 +54,9 @@ app.get('/', async (req, res) => {
 			if(d.enrich && exchange == 'lse'){
 				// d['Purchase Price'] = d['Purchase Price'] / 100 //convert penny to pound
 				d.enrich.historical = d.enrich.historical.map((p) => {
-					if(Number(p.date.substring(0, 4)) < 2022){
-						p.usd_close_price = (p.close / 100)						
-					}
+					// if(Number(p.date.substring(0, 4)) < 2022){
+					// 	p.usd_close_price = (p.close / 100)						
+					// }
 					return p
 				})
 			}
