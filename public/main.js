@@ -1,6 +1,7 @@
 console.log(data)
 console.log(port)
 console.log(stats)
+console.log(sp500)
 
 const ctx = document.getElementById('myChart').getContext('2d');
 
@@ -55,25 +56,48 @@ let dailyPortReturn = {
     name: 'Return (%)'
 }
 
+let sp500Return = {
+    x: [],
+    y: [],
+    yaxis: 'y2',
+    type: 'scatter',
+    mode: "lines",
+    name: 'SPY Return (%)'
+}
+
 let startDate = new Date(`${new Date().getFullYear()-3}-01-01`)
 let endDate = new Date(`${new Date().getFullYear()}-12-31`)
 
 let tomorrow = new Date()
 tomorrow.setDate(tomorrow.getDate() + 1)
+let firstTradeDate = tradeDateFormat(data[0]['Trade Date'])
+let sp500Cost = Number(findNearestQuote(sp500, firstTradeDate, 'SPY'))
+console.log(firstTradeDate, data[0]['Trade Date'])
+console.log('sp500Cost', sp500Cost)
+
 for(let i = startDate; i < endDate; i.setDate(i.getDate() + 1)){
     if(i < tomorrow){
+        let iso = i.toISOString()
         let dayData = calcDayValue(i)
-        // console.log(i, dayData)
-        dailyPortValue['x'].push(i.toISOString())
+        dailyPortValue['x'].push(iso)
         dailyPortValue['y'].push(dayData.val)
-        dailyPortReturn['x'].push(i.toISOString())
+        dailyPortReturn['x'].push(iso)
         dailyPortReturn['y'].push((dayData.val + dayData.realized - dayData.cost) / dayData.cost * 100)
-        realized['x'].push(i.toISOString())
+        realized['x'].push(iso)
         realized['y'].push(dayData.realized)
+
+        if(i >= firstTradeDate){
+            sp500Return['x'].push(iso)
+            let sp500Value = Number(findNearestQuote(sp500, i, 'SPY'))
+            sp500Return['y'].push((sp500Value - sp500Cost) / sp500Cost * 100)            
+        }
+
         // dailyPortReturn['y'].push((dayData.val - stats.initial_amount) / stats.initial_amount * 100)
     }
 }
 
+console.log('sp500', sp500Return)
+// console.log('realized', realized)
 
 
 // console.log('dailyPortValue', dailyPortValue)
@@ -140,9 +164,16 @@ function findNearestQuote(historical, date, symbol){
     //format date as YYYYMMDD
     let dateNum = Number(`${date.getFullYear()}${("0"+(date.getMonth()+1)).slice(-2)}${("0"+date.getDate()).slice(-2)}`)
 
+
     //create hist from historical, enriching formatted date and date diff
     let hist = historical.map((h) => {
-        h.d = Number(h.date.substring(0, 10).replace(/-/g, ''))
+        if(/^[0-9]{13}$/.test(h.date)){
+            let tdate = new Date(Number(h.date))
+            h.d = Number(tdate.getUTCFullYear() + "" + ("0" + (tdate.getUTCMonth() + 1)).slice(-2) + "" + (tdate.getDate()))
+        }else{
+            h.d = Number(h.date.substring(0, 10).replace(/-/g, ''))            
+        }
+
         h.diff = Math.abs(h.d - dateNum)
         return h
     })
@@ -275,7 +306,7 @@ data.forEach((d, idx) => {
 
 // https://plotly.com/javascript/time-series/
 let plotConfig = {
-    data: [dailyPortValue, dailyPortReturn, realized, scatter],
+    data: [dailyPortValue, dailyPortReturn, realized, scatter, sp500Return],
     "layout": {
         "width": 1200,
         "height": 700,

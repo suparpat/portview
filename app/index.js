@@ -18,6 +18,7 @@ const er = {
 const calc = require('./calc.js')(initial_amount, er)
 const getPrices = require('./data.js').getPrices
 const getHistoricals = require('./data.js').getHistoricals
+const getHistorical = require('./data.js').getHistorical
 
 const app = express()
 app.set('views', './views')
@@ -30,8 +31,7 @@ app.use(express.static(path.join(__dirname, '/../public')))
 app.get('/', async (req, res) => {
 	let inputPath = __dirname + '/../data/updated.csv'
 	if(!fs.existsSync(inputPath)){
-		res.render('main', {
-		})
+		res.render('main', {})
 	}
 
 	else{
@@ -87,12 +87,16 @@ app.get('/', async (req, res) => {
 		let calculated = calc(data)
 		let port = calculated.arr
 		let stats = calculated.stats
-
+		let sp500 = fs.readFileSync(__dirname + '/../data/sp500.csv')
+		sp500 = csvParseSync(sp500)
+		sp500 = csvToJson(sp500)
+		
 		res.render('main', {
 			data: data,
 			port: port,
 			stats: stats,
-			roundTo2: roundTo2
+			roundTo2: roundTo2,
+			sp500: sp500
 		})
 	}
 
@@ -117,6 +121,11 @@ app.get('/update', async (req, res) => {
 		})
 		console.log(data)
 		fs.writeFileSync(__dirname + '/../data/updated.csv', stringify(data, {header: true}))
+
+		let sp500 = await getHistorical('SPY')
+		console.log(sp500)
+		fs.writeFileSync(__dirname + '/../data/sp500.csv', stringify(sp500, {header: true}))
+
 		res.send('done. <a href="/">Go back</a>')		
 	}
 

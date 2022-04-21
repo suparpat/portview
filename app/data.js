@@ -148,6 +148,7 @@ function getDateEnd(){
 
 module.exports = {
 	getHistoricals: getHistoricals,
+	getHistorical: getHistorical,
 	getPrices: getPrices
 }
 
