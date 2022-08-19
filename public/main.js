@@ -94,7 +94,8 @@ for(let i = startDate; i < endDate; i.setDate(i.getDate() + 1)){
         dailyPortValue['y'].push(dayData.val)
 
         dailyPortReturn['x'].push(iso)
-        dailyPortReturn['y'].push((dayData.val + dayData.realized - dayData.cost) / dayData.cost * 100)
+        // dailyPortReturn['y'].push((dayData.val + dayData.realized - dayData.cost) / dayData.cost * 100)
+        dailyPortReturn['y'].push((dayData.val + dayData.realized - dayData.cost) / stats.initial_amount * 100)
 
         realized['x'].push(iso)
         realized['y'].push(dayData.realized)
@@ -201,8 +202,14 @@ function findNearestQuote(historical, date, symbol){
     //     console.log(dateNum, 'aapl',  hist[0].diff, hist[0].d)
     // }
 
+    // console.log(symbol, hist)
 
-    return (hist[0].usd_close_price ? hist[0].usd_close_price : hist[0].close)
+    if(hist.length == 0){
+        return 0
+    }else{
+        return (hist[0].usd_close_price ? hist[0].usd_close_price : hist[0].close)    
+    }
+    
 }
 
 function roundTo2(num){

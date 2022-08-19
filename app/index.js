@@ -48,35 +48,38 @@ app.get('/', async (req, res) => {
 		})
 
 		data = data.map((d) => {
-			let currency = (d['enrich']['quote']['price']['currency']).toLowerCase()
-			let exchange = (d.enrich.quote.price.exchange).toLowerCase()
+			if(d['enrich']['quote']){
+				let currency = (d['enrich']['quote']['price']['currency']).toLowerCase()
+				let exchange = (d.enrich.quote.price.exchange).toLowerCase()
 
-			if(d.enrich && exchange == 'lse'){
-				// d['Purchase Price'] = d['Purchase Price'] / 100 //convert penny to pound
-				d.enrich.historical = d.enrich.historical.map((p) => {
-					// if(Number(p.date.substring(0, 4)) < 2022){
-					// 	p.usd_close_price = (p.close / 100)						
-					// }
-					return p
-				})
+				if(d.enrich && exchange == 'lse'){
+					// d['Purchase Price'] = d['Purchase Price'] / 100 //convert penny to pound
+					d.enrich.historical = d.enrich.historical.map((p) => {
+						// if(Number(p.date.substring(0, 4)) < 2022){
+						// 	p.usd_close_price = (p.close / 100)						
+						// }
+						return p
+					})
+				}
+
+				if(d.enrich && currency == 'gbp'){
+					d['Purchase Price'] = d['Purchase Price'] / 100 / (er.gbp) //convert penny to pound, convert gbp to usd
+					d['enrich']['quote']['price']['regularMarketPrice'] = d['enrich']['quote']['price']['regularMarketPrice'] / 100 / (er.gbp)
+					d.enrich.historical = d.enrich.historical.map((p) => {
+						p.usd_close_price = (p.close / 100 / er.gbp)
+						return p
+					})
+				}
+				else if(d.enrich && currency == 'hkd'){
+					d['Purchase Price'] = d['Purchase Price'] / (er.hkd) //convert hkd to usd
+					d['enrich']['quote']['price']['regularMarketPrice'] = d['enrich']['quote']['price']['regularMarketPrice'] / (er.hkd)
+					d.enrich.historical = d.enrich.historical.map((p) => {
+						p.usd_close_price = (p.close / er.hkd)
+						return p
+					})
+				}				
 			}
 
-			if(d.enrich && currency == 'gbp'){
-				d['Purchase Price'] = d['Purchase Price'] / 100 / (er.gbp) //convert penny to pound, convert gbp to usd
-				d['enrich']['quote']['price']['regularMarketPrice'] = d['enrich']['quote']['price']['regularMarketPrice'] / 100 / (er.gbp)
-				d.enrich.historical = d.enrich.historical.map((p) => {
-					p.usd_close_price = (p.close / 100 / er.gbp)
-					return p
-				})
-			}
-			else if(d.enrich && currency == 'hkd'){
-				d['Purchase Price'] = d['Purchase Price'] / (er.hkd) //convert hkd to usd
-				d['enrich']['quote']['price']['regularMarketPrice'] = d['enrich']['quote']['price']['regularMarketPrice'] / (er.hkd)
-				d.enrich.historical = d.enrich.historical.map((p) => {
-					p.usd_close_price = (p.close / er.hkd)
-					return p
-				})
-			}
 			return d
 		})
 

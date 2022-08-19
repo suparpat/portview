@@ -66,8 +66,11 @@ async function getPrice(symbol){
 		  ] // see the docs for the full list
 		}, function (err, quotes) {
 			if(err){
-				reject(err)
+				console.log(err)
+				// reject(err)
+				resolve(null)
 			}else{
+				console.log(quotes)
 				resolve(quotes)
 			}
 		});		

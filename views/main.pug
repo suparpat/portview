@@ -164,7 +164,7 @@ html
 							td #{idx + 1}
 							td #{r.symbol}
 							td #{r.weight}%
-							if r.enrich
+							if r.enrich && r.enrich.quote && r.enrich.quote.price
 								td #{r.enrich.quote.price.shortName}
 								//- td #{r.enrich.quote.price.exchangeName}
 								//- td #{r.enrich.quote.summaryProfile ? r.enrich.quote.summaryProfile.sector : ""}
@@ -177,7 +177,7 @@ html
 								- let trend = r.enrich.quote.recommendationTrend ? (r.enrich.quote.recommendationTrend.trend[0]) : null
 								- let sumTrends = trend ? (parseFloat(trend.buy) + parseFloat(trend.strongBuy) + parseFloat(trend.sell) + parseFloat(trend.hold) + parseFloat(trend.strongSell)) : ''
 
-								if r.enrich.quote.financialData
+								if r.enrich && r.enrich.quote && r.enrich.quote.financialData
 									td #{r.enrich.quote.financialData ? (r.enrich.quote.financialData.recommendationMean) : ""} #{r.enrich.quote.financialData ? ("(" + r.enrich.quote.financialData.recommendationKey) : ""}, #{sumTrends})
 								else 
 									td
@@ -189,6 +189,9 @@ html
 								//- td #{r.enrich.quote.price.currency}
 								td #{r.enrich.quote.price.currencySymbol}#{roundTo2(r.enrich.quote.price.regularMarketPrice)}
 							else
+								td
+								td
+								td
 								td
 								td
 								td

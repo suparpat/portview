@@ -24,6 +24,7 @@ module.exports = function(initial_amount, er){
 				}
 				stats.holdings_cost += (d.Quantity * d['Purchase Price'])
 			}
+
 			else if(d.Quantity > 0){
 				let newQty = holdings[d.Symbol].shares + d.Quantity
 				holdings[d.Symbol].cost = ((holdings[d.Symbol].cost * holdings[d.Symbol].shares) + (d.Quantity * d['Purchase Price'])) / newQty
@@ -31,6 +32,7 @@ module.exports = function(initial_amount, er){
 				stats.holdings_cost += (d.Quantity * d['Purchase Price'])
 				holdings[d.Symbol].lots.push({shares: d.Quantity, cost: d['Purchase Price'], date: tradeDateFormat(d['Trade Date'])})
 			}
+
 			else if(d.Quantity < 0){
 				let newQty = holdings[d.Symbol].shares + d.Quantity
 				let real = (Math.abs(d.Quantity) * d['Purchase Price']) - (Math.abs(d.Quantity) * holdings[d.Symbol].cost) 
@@ -58,19 +60,26 @@ module.exports = function(initial_amount, er){
 		for (let h in holdings){
 			let v = holdings[h]
 			if(v['enrich']){
-				let curPrice = v['enrich']['quote']['price']['regularMarketPrice']
-				// let currency = v['enrich']['quote']['price']['currency']
-				// if(currency.toLowerCase() == 'gbp'){
-				// 	curPrice = curPrice / 100 //convert penny to pound
-				// 	curPrice = curPrice / (er.gbp) //convert gbp to usd
-				// }
+				if(v['enrich']['quote']){
+					let curPrice = v['enrich']['quote']['price']['regularMarketPrice']
+					// let currency = v['enrich']['quote']['price']['currency']
+					// if(currency.toLowerCase() == 'gbp'){
+					// 	curPrice = curPrice / 100 //convert penny to pound
+					// 	curPrice = curPrice / (er.gbp) //convert gbp to usd
+					// }
 
-				v.value = roundTo2(curPrice * v.shares)
-				v.diff = (curPrice - v.cost) * v.shares
-				v.diffPercent = roundTo2((curPrice - v.cost) / v.cost * 100)
-				v.diff = roundTo2(v.diff)
-				v.cost = roundTo2(v.cost)
-
+					v.value = roundTo2(curPrice * v.shares)
+					v.diff = (curPrice - v.cost) * v.shares
+					v.diffPercent = roundTo2((curPrice - v.cost) / v.cost * 100)
+					v.diff = roundTo2(v.diff)
+					v.cost = roundTo2(v.cost)					
+				}else{
+					v.value = 0
+					v.diff = (0 - v.cost) * v.shares
+					v.diffPercent = roundTo2((0 - v.cost) / v.cost * 100)
+					v.diff = roundTo2(v.diff)
+					v.cost = roundTo2(v.cost)						
+				}
 			}
 
 			stats.sum_values += v.value
